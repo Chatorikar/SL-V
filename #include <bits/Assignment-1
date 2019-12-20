@@ -1,0 +1,69 @@
+#include <bits/stdc++.h>
+#include <iterator>
+#include <map>
+#include <string>
+#include<stdlib.h>
+using namespace std;
+
+
+class Assembler
+{
+	public:
+		string input;
+		map<string, string>mnemonics;
+		map<string, string>registers;
+
+	Assembler();
+	void Convert();
+};
+
+
+Assembler::Assembler()
+{
+	mnemonics["STOP"]  = "00";
+	mnemonics["ADD"]   = "01";
+	mnemonics["SUB"]   = "02";
+	mnemonics["MULTI"] = "03";
+	mnemonics["MOVER"] = "04";
+	mnemonics["MOVEM"] = "05";
+	mnemonics["COMP"]  = "06";
+	mnemonics["BC"]    = "07";
+	mnemonics["DIV"]   = "08";
+	mnemonics["READ"]  = "09";
+	mnemonics["PRINT"] = "10";
+
+	registers["AREG"] = "11";
+	registers["BREG"] = "12";
+	registers["cREG"] = "13";
+	registers["DREG"] = "14";
+
+
+}
+
+void Assembler::Convert()
+{
+	ifstream fin;
+	string line;
+	string word;
+
+
+	 fin.open("instruction.txt");
+	 while(fin)
+	 {
+		  getline(fin, line);
+		  stringstream iss(line);
+		  while (iss >> word)
+	   			cout<<word<<endl;
+
+	 }
+
+
+}
+
+
+
+int main()
+{
+	Assembler assembler;
+	assembler.Convert();
+}
