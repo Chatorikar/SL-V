@@ -25,7 +25,7 @@ void Show_All_Position()
 
 bool place(int Queen_No , int i)
 {
-  for(int row_no = 1; row_no <= Queen_No ; row_no++)
+  for(int row_no = 1; row_no <= Queen_No-1 ; row_no++)
   {
     if(x[row_no] == i || ( abs(x[row_no]-i) == abs(row_no-Queen_No)) )
     {
