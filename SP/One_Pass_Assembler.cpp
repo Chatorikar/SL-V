@@ -78,9 +78,13 @@ bool Assembler::isLiteral(string s)
 
 bool Assembler::isSymbol(string s)
 {
-    if(s.length() > 0)
+    // if(s.length() > 0)
+    //     return true;
+    // return false; 
+
+    if(s[0] != '=')
         return true;
-    return false; 
+    return false;
 }
 
 
@@ -184,9 +188,6 @@ int Assembler::Symbol_Table()
        }    
        else if(isSymbol(v[0]))
        {
-           
-
-
             if(v[1] == "END")
             {
                 cout<<"("<<opcode[v[1]].first<<" , "<<opcode[v[1]].second<<")"<<" "<<LOC<<endl;
