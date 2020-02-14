@@ -45,6 +45,9 @@ class Assembler {
         bool check_for_start(string);
         int check_for_type(string);
         void write_to_file(vector<string>);
+        int check_for_the_symbol(string);
+        bool check_if_exists(string);
+        void Handle_LTORG();
 };
 
 Assembler::Assembler() {
@@ -121,6 +124,34 @@ void Assembler::updateLOC(int LOC, vector < string > v) {
         this -> LOC++;
 }
 
+int Assembler::check_for_the_symbol(string sym)
+{
+    for(int i = 0 ; i < symbol_count ; i++)
+    {
+        if(s[i].symbol == sym)
+        {
+            return s[i].address;
+        }
+    }
+
+    return -1;
+}
+
+
+
+bool Assembler::check_if_exists(string sym)
+{
+    for(int i = 0 ; i < symbol_count ; i++)
+    {
+        if(s[i].symbol == sym)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 
 
 
@@ -161,7 +192,33 @@ int Assembler::check_for_type(string str)
     
     if(isSymbol(str))
         return 2;
+    
+    return 0;
 }
+
+void Assembler::Handle_LTORG()
+{
+    for(int i = 0 ; i < literal_count ; i++)
+    {
+        // if address is default address then assign current location counter address
+        if(l[i].address == 0) 
+        {
+            cout << "(" << opcode["LTORG"].first << " , " << opcode["LTORG"].second << ")" << " (DL , 02) (C ,"<<l[i].literal<< ")  " <<this->LOC<<endl;
+            l[i].address = this->LOC;
+            this->LOC++;
+        }
+
+    }
+}
+
+
+
+
+
+
+
+
+
 
 int Assembler::Symbol_Table() {
     // Program File Name :
@@ -184,10 +241,6 @@ int Assembler::Symbol_Table() {
 
     ifstream myfile(source_code);
         
-
-       
-           
-            
     while (getline(myfile, line)) {
 
         if(flag)
@@ -206,18 +259,33 @@ int Assembler::Symbol_Table() {
 
         } while (ss);
 
+        cout<<"\n\n";
+        for(auto x : v )
+            cout<<" "<<x;
+        cout<<"\n\n";
+
+
         if(opcode.count(v[0]) > 0)
         {   
             //opcode.count will give true or false if we have corresonding entry in OPCODE map or not
             //if MOVEM AREG B i.e. V[0] we have IS 
-            // v[0] v[1] v[2]
+            //   v[0]  v[1] v[2]
             
             switch(check_for_type(v[2])) // check for start as it is having only two value v[0] v[1]
-            {
+            {   
+
+                case 0:
+                    //As LTORG doesn't have v[2] if will return 0 so handle LTORG
+                    cout<<"\n\n\n";
+                    cout<<"\n\n\n";
+                    this->Handle_LTORG();
+                    break;
+                
                 case 1:
                     // if it is literal
                     cout << "(" << opcode[v[0]].first << " , " << opcode[v[0]].second << ")" << " (L ," << this->literal_count << ")" << " " <<this->LOC << endl;
                     l[literal_count].literal = v[2];
+                    l[literal_count].address = 0;
                     literal_count++;
                     break;
                 case 2:
@@ -232,11 +300,32 @@ int Assembler::Symbol_Table() {
                     // if it is constant 
                     cout << "(" << opcode[v[0]].first << " , " << opcode[v[0]].second << ")" << " (C ," << v[2] << ")" << " " << this->LOC << endl;
                     break;
+                
             }
             
             updateLOC(LOC, v);
 
-        }else {
+        // if v[0] is not some statment then it must be EQU for Label
+        }else if(v[1] == "EQU"){
+            
+            // Assign address of it's v[2] field it's lable at v[1]
+            // handle Lable EQU A+1 
+            int address = check_for_the_symbol(v[2]);
+
+            if(address == -1)
+            {
+                cout<<"Error EQU : Invalid Symbol "<<v[2];
+                return 0;
+            }
+
+            if(! check_if_exists(v[0]))
+            {
+                s[symbol_count].symbol = v[0]; 
+                s[symbol_count].address =address;
+                symbol_count++;
+            }
+        } 
+        else {
 
             // v[0] i.e. label in symbol table and add address to label
             s[symbol_count].symbol = v[0]; 
@@ -250,6 +339,7 @@ int Assembler::Symbol_Table() {
                     // if it is literal
                     cout <<"(" <<v[0] <<" , "<<symbol_count-1<< ")(" << opcode[v[1]].first << " , " << opcode[v[1]].second << ")" << " (L ," << literal_count << ")" << " " <<this->LOC << endl;
                     l[literal_count].literal = v[3];
+                    l[literal_count].address = 0;
                     literal_count++;
                     break;
                 case 2:
@@ -270,50 +360,7 @@ int Assembler::Symbol_Table() {
         }
 
 
-        // if (v[0] == "-") {
-        //     if (v[1] == "END") {
-        //         cout << "(" << opcode[v[1]].first << " , " << opcode[v[1]].second << ")" << " " << LOC << endl;
-        //         updateLOC(LOC, v);
-
-        //     } else if (isSymbol(v[3])) // check
-        //     {
-
-        //         cout << "(" << opcode[v[1]].first << " , " << opcode[v[1]].second << ")" << " (S ," << symbol_count << ")" << " " << LOC << endl;
-        //         s[symbol_count].symbol = v[3];
-        //         symbol_count++;
-        //         updateLOC(LOC, v);
-        //     } else if (isLiteral(v[3])) {
-        //         cout << "(" << opcode[v[1]].first << " , " << opcode[v[1]].second << ")" << " (L ," << literal_count << ")" << " " << LOC << endl;
-        //         l[literal_count].literal = v[3];
-        //         literal_count++;
-        //         updateLOC(LOC, v);
-        //     }
-        // } else if (isSymbol(v[0])) {
-        //     if (v[1] == "END") {
-        //         cout << "(" << opcode[v[1]].first << " , " << opcode[v[1]].second << ")" << " " << LOC << endl;
-
-        //     } else if (isSymbol(v[3])) {
-        //         cout << "(" << v[0] << " , " << symbol_count << ")" << "(" << opcode[v[1]].first << " , " << opcode[v[1]].second << ")" << " (S ," << symbol_count << ")" << " " << LOC << endl;
-        //         s[symbol_count].symbol = v[0];
-        //         s[symbol_count].address = LOC;
-        //         symbol_count++;
-
-        //         updateLOC(LOC, v);
-        //         s[symbol_count].symbol = v[3];
-
-        //     } else if (isLiteral(v[3])) {
-        //         cout << "(" << v[0] << " , " << symbol_count << "(" << opcode[v[0]].first << " , " << opcode[v[0]].second << ")" << "(" << "(" << opcode[v[1]].first << " , " << opcode[v[1]].second << ")" << " (L ," << literal_count << ")" << " " << LOC << endl;
-        //         l[literal_count].literal = v[3];
-        //         literal_count++;
-
-        //         s[symbol_count].symbol = v[0];
-        //         s[symbol_count].address = LOC;
-        //         symbol_count++;
-
-        //         updateLOC(LOC, v);
-
-        //     }
-        // }
+      
 
         v.clear();
     }
